@@ -1,16 +1,11 @@
 package hanoi;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import static hanoi.State.diskA;
+import static hanoi.State.diskB;
 
 public class StateGenerator {
 
-	private int maxStates = 12;
-	List<State> possibleStates;
-	private State startState;
-	
-
+	private State[] stateSpace;
 
 //	public StateGenerator() {
 //		this.possibleStates = new ArrayList();
@@ -30,7 +25,7 @@ public class StateGenerator {
 	
 	public StateGenerator() {
 
-}
+	}
 
 //	public void generatePossibleState(State state) {
 ////		if (this.possibleStates.size() == maxStates) {
@@ -68,9 +63,9 @@ public class StateGenerator {
 //			}
 //		}
 //	}
-	
-	public State[] generateHardCodedStates() {
-		State[] stateSpace = new State[12];
+
+	public void generateHardCodedStates() {
+		stateSpace = new State[12];
 		
 		//Generate state 1
 		stateSpace[0] = new State();
@@ -131,22 +126,25 @@ public class StateGenerator {
 		//Generate state 12
 		stateSpace[11] = new State();
 		stateSpace[11].pin2.push(diskA);
-		stateSpace[11].pin3.push(diskB);	
-		
+		stateSpace[11].pin3.push(diskB);
+	}
+
+	public State[] getStateSpace() {
 		return stateSpace;
 	}
 
+	/**
+	 * Checks if state in stateSpace
+	 * @param currentState
+	 * @return boolean
+	 */
 	private boolean stateExists(State currentState) {
-		for (State state : possibleStates) {
+		for (State state : stateSpace) {
 			if (state.isSameState(currentState)) {
 				return true;
 			}
 		}
 
 		return false;
-	}
-
-	public State getStartState() {
-		return this.startState;
 	}
 }
