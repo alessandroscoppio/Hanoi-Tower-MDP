@@ -7,24 +7,27 @@ public class State {
 	public static final int diskA = 2;
 	public static final int diskB = 1;
 
-	public Stack pin1;
-	public Stack pin2;
-	public Stack pin3;
-
 	public Stack[] pins;
 
 	public State() {
-		this.pin1 = new Stack();
-		this.pin2 = new Stack();
-		this.pin3 = new Stack();
 
-		this.pins = new Stack[]{pin1, pin2, pin3};
+		this.pins = new Stack[3];
+		for(int i = 0; i < 3; i++) {
+			pins[i] = new Stack();
+		}
 	}
 
 	public State(Stack[] pins) {
-		this.pin1 = pins[0];
-		this.pin2 = pins[1];
-		this.pin3 = pins[2];
+		this.pins = new Stack[3];
+
+		for(int i = 0; i < pins.length; i++) {
+			this.pins[i] = new Stack();
+
+			for(int j = 0; j < pins[i].size(); j++) {
+				this.pins[i].push(pins[i].get(j));
+			}
+		}
+
 	}
 
 	/**
@@ -46,16 +49,16 @@ public class State {
 	}
 
 	/**
-	 * Checks all pins of the given state with this state
-	 * for the same configuration
+	 * Checks all pins of the given state with this state for the same configuration
+	 * 
 	 * @param currentState
 	 * @return boolean
 	 */
 	public boolean isSameState(State currentState) {
 		try {
-			for (Stack pin : pins) {
-				for (int i = 0; i < pin.size(); i++) {
-					if (pin.elementAt(i) != currentState.pins[i].elementAt(i)) {
+			for (int j = 0; j < pins.length; j++) {
+				for (int i = 0; i < pins[j].size(); i++) {
+					if (pins[j].elementAt(i) != currentState.pins[j].elementAt(i)) {
 						return false;
 					}
 				}
