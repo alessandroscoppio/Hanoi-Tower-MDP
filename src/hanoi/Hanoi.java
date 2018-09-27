@@ -2,7 +2,6 @@ package hanoi;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Stack;
 
 public class Hanoi {
@@ -26,7 +25,6 @@ public class Hanoi {
 	}
 
 	public void executeValueIteration() {
-		// TODO: check in the debug if it's initialize with zeros
 		double[] previousUtility = new double[12];
 		double[] nextUtility = new double[12];
 		int[] policies = new int[12];
@@ -58,9 +56,9 @@ public class Hanoi {
 				}
 
 			}
-
-			previousUtility = nextUtility.clone();
-
+			for (int k = 0; k < nextUtility.length; k++) {
+				previousUtility[k] = nextUtility[k];
+			}
 
 		} while (delta <= epsilon);
 		System.out.println("FINAL POLICIES: ");
@@ -73,6 +71,9 @@ public class Hanoi {
 	public double summaryOfProbabilitiesTimesUtility(State state, int[] action, double[] utilities) {
 		double utilitySum = 0;
 		List<State> possibleStates = getPossibleNextStatesFromState(state, action);
+		for (State possibleState : possibleStates) {
+			utilitySum += getProbabilityStateActionState(state, action, possibleState) * utilities[getIndexOfState(possibleState)];
+		}
 
 		return utilitySum;
 	}
@@ -97,8 +98,8 @@ public class Hanoi {
 				originalRewards[i] = -1;
 		}
 
-		List<State> possibleLandingStates = getPossibleNextStatesFromState(currentState, null);
-
+		List<State> possibleLandingStates = getPossibleNextStatesFromState(currentState, actionToPerform);
+		//TODO Each time I execute an action I could end up to another state because I failed. This algorithm things that I always succeed
 		double cumulativeReward = 0;
 		for (State state : possibleLandingStates) {
 			cumulativeReward += getProbabilityStateActionState(currentState, actionToPerform, state)
@@ -140,6 +141,7 @@ public class Hanoi {
 
 		List<State> possibleStates = new ArrayList<>();
 
+		//TODO This doesn't give me the failure state. And I use this when I calculate the utility.
 		for (int[] action : currentActions) {
 			State newState = performAction(state, action);
 
