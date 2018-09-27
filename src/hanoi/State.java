@@ -4,83 +4,66 @@ import java.util.Stack;
 
 public class State {
 
-	Stack pin1;
-	Stack pin2;
-	Stack pin3;
-	
-//
-	Stack[] pins = { pin1, pin2, pin3 };
 	public static final int diskA = 2;
 	public static final int diskB = 1;
 
-	public State(Stack[] pins) {
+	public Stack pin1;
+	public Stack pin2;
+	public Stack pin3;
 
-		this.pin1 = pins[0];
-		this.pin2 = pins[1];
-		this.pin3 = pins[2];
-	}
-	
+	public Stack[] pins;
+
 	public State() {
 		this.pin1 = new Stack();
 		this.pin2 = new Stack();
 		this.pin3 = new Stack();
+
+		this.pins = new Stack[]{pin1, pin2, pin3};
 	}
 
-	public void printState() {
-		
-		if(pin1.isEmpty())
-			System.out.print("|");
-		else {
-			for(int i = 0; i < pin1.size(); i++) {
-				System.out.print(pin1.get(i));
-			}
-		}
-		System.out.print(" ");
+	public State(Stack[] pins) {
+		this.pin1 = pins[0];
+		this.pin2 = pins[1];
+		this.pin3 = pins[2];
+	}
 
-		
-		if(pin2.isEmpty())
-			System.out.print("|");
-		else {
-			for(int i = 0; i < pin2.size(); i++) {
-				System.out.print(pin2.get(i));
+	/**
+	 * Prints state configuration in terminal
+	 */
+	public void printStateInTerminal() {
+		for (Stack pin : pins) {
+			if (pin.isEmpty()) {
+				System.out.print("|");
+			} else {
+				for (int i = 0; i < pin.size(); i++) {
+					System.out.print(pin.get(i));
+				}
 			}
-		}
-		System.out.print(" ");
-
-		
-		if(pin3.isEmpty())
-			System.out.print("|");
-		else {
-			for(int i = 0; i < pin3.size(); i++) {
-				System.out.print(pin3.get(i));
-			}
+			System.out.print(" ");
 		}
 		System.out.println();
-		
+
 	}
+
+	/**
+	 * Checks all pins of the given state with this state
+	 * for the same configuration
+	 * @param currentState
+	 * @return boolean
+	 */
 	public boolean isSameState(State currentState) {
 		try {
-			for (int i = 0; i < pin1.size(); i++) {
-				if (pin1.elementAt(i) != currentState.pin1.elementAt(i)) {
-					return false;
-				}
-			}
-			
-			for (int i = 0; i < pin2.size(); i++) {
-				if (pin2.elementAt(i) != currentState.pin2.elementAt(i)) {
-					return false;
-				}
-			}
-			
-			for (int i = 0; i < pin3.size(); i++) {
-				if (pin3.elementAt(i) != currentState.pin3.elementAt(i)) {
-					return false;
+			for (Stack pin : pins) {
+				for (int i = 0; i < pin.size(); i++) {
+					if (pin.elementAt(i) != currentState.pins[i].elementAt(i)) {
+						return false;
+					}
 				}
 			}
 		} catch (ArrayIndexOutOfBoundsException e) {
 			return false;
 		}
-		
+
 		return true;
 	}
 

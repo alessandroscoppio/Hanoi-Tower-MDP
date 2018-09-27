@@ -56,6 +56,7 @@ local.properties
 .worksheet
 
 .idea/
+out/
 *.iml
 
 .project
