@@ -8,7 +8,9 @@ public class Hanoi {
 
     private List<int[]> actions = new ArrayList<>();
     private State[] states;
+    private List<List<State>> landingStates;
     private int[] rewards;
+	private int[] originalRewards;
     private double epsilon = 2.220446049250313e-16;
     private double discountFactor = 0.9;
 
@@ -18,6 +20,8 @@ public class Hanoi {
         states = stateGenerator.getStateSpace();
 
         generateActions();
+	    generateOriginalRewards();
+	    generateLandingStates();
     }
 
     public void executePolicyIteration() {
@@ -88,17 +92,6 @@ public class Hanoi {
     }
 
     public double getRewards(State currentState, int[] actionToPerform) {
-
-        int[] originalRewards = new int[12];
-        for (int i = 0; i < 12; i++) {
-            if (i == 5)
-                originalRewards[i] = 100;
-            else if (i == 3 || i == 7 || i == 10)
-                originalRewards[i] = -10;
-            else
-                originalRewards[i] = -1;
-        }
-
         List<State> possibleLandingStates = getPossibleNextStatesFromState(currentState, null);
 
         double cumulativeReward = 0;
@@ -145,14 +138,15 @@ public class Hanoi {
         for (int[] action : currentActions) {
             //TODO: let performAction return not only the state we should end, but also the wrong one,
             //in case there was an error and he fucked up
-            State newState = performAction(state, action);
+            List<State> states = performAction(state, action);
 
-            if (newState != null) {
+            if (!states.isEmpty()) {
                 for (State currentState : states) {
-                    if (newState.isSameState(currentState)) {
-                        if (!possibleStates.contains(currentState))
-                            possibleStates.add(currentState);
-                        break;
+                    if (states.get(0).isSameState(currentState) ||
+		                    states.get(1).isSameState(currentState)) {
+	                    if (!possibleStates.contains(currentState))
+		                    possibleStates.add(currentState);
+	                    break;
                     }
                 }
             }
@@ -168,28 +162,30 @@ public class Hanoi {
      *
      * @param state
      * @param action
-     * @return State or null
+     * @return List of states
      */
-    private State[] performAction(State state, int[] action) {
-        //changed the return type to State[] in order to return also the state we end if we "fuck up things"
+    private List<State> performAction(State state, int[] action) {
         List<State> landingStates = new ArrayList<>();
         Stack[] pinsCopy = state.pins.clone();
-        State copy = new State(pinsCopy);
+        State successState = new State(pinsCopy);
         int tempValue;
-        if (copy.pins[action[0] - 1].isEmpty())
-            return null;
+        if (successState.pins[action[0] - 1].isEmpty())
+            return landingStates; //this is empty. So better than null
         else {
-            tempValue = (int) copy.pins[action[0] - 1].pop();
-            copy.pins[action[1] - 1].push(tempValue);
-            landingStates.add(copy);
-            //TODO: push the disk also in the 3 pin, th only one not utilized yet.
-            //I would do it now but it's 4.20 in the night and tmrw I have Coordinator meeting.
-            //As soon as I will wake up I will give you more details, and as soon as I finish
-            //the meeting I will join you to finish this sh*t.
-            //P.S. I have working code in python, policies and values iterations values and a report sample.
-            //They will be very useful. Goodnight man
+            tempValue = (int) successState.pins[action[0] - 1].pop();
+            successState.pins[action[1] - 1].push(tempValue);
+            landingStates.add(successState);
 
+//            if (shouldReturnFailedStates) {
+//	            State failState = new State(pinsCopy);
+//	            int[] failAction = getFailActionFromAction(action);
+//	            tempValue = (int) failState.pins[failAction[0] - 1].pop();
+//	            failState.pins[failAction[1] - 1].push(tempValue);
+//	            landingStates.add(failState);
+//            }
         }
+
+        return landingStates;
     }
 
     /**
@@ -214,7 +210,7 @@ public class Hanoi {
     private List<Integer> getPossibleActions(State state) {
         List<Integer> possibleActions = new ArrayList();
         for (int i = 0; i < actions.size(); i++) {
-            if (performAction(state, actions.get(i)) != null)
+            if (!performAction(state, actions.get(i)).isEmpty())
                 possibleActions.add(i);
         }
 
@@ -229,5 +225,36 @@ public class Hanoi {
         for (int i = 0; i < states.length; i++) {
             states[i].printStateInTerminal();
         }
+    }
+
+    private int[] getFailActionFromAction(int[] successAction) {
+    	for (int i = 0; i < actions.size(); i++) {
+    		//If the action that we are iterating at the moment has the same origin pin but at the same
+		    //time not the same target pin, then this is the action you need to perform to reach the failed state
+    		if (actions.get(i)[0] == successAction[0] && actions.get(i)[1] != successAction[1]) {
+    			return actions.get(i);
+		    }
+	    }
+
+	    return null;
+    }
+
+    private void generateOriginalRewards() {
+	    originalRewards = new int[12];
+	    for (int i = 0; i < 12; i++) {
+		    if (i == 5)
+			    originalRewards[i] = 100;
+		    else if (i == 3 || i == 7 || i == 10)
+			    originalRewards[i] = -10;
+		    else
+			    originalRewards[i] = -1;
+	    }
+    }
+
+    private void generateLandingStates() {
+	    landingStates = new ArrayList<>();
+	    for (int i = 0; i < states.length; i++) {
+		    landingStates.add(getPossibleNextStatesFromState(states[i], null));
+	    }
     }
 }

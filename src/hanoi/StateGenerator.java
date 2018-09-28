@@ -6,63 +6,10 @@ import static hanoi.State.diskB;
 public class StateGenerator {
 
 	private State[] stateSpace;
-
-//	public StateGenerator() {
-//		this.possibleStates = new ArrayList();
-//		Stack pinA = new Stack();
-//		Stack pinB = new Stack();
-//		Stack pinC = new Stack();
-//
-//		pinA.push(State.d2);
-//		pinA.push(State.d1);
-//
-//		Stack[] pins = { pinA, pinB, pinC };
-//
-//		startState = new State(pins);
-//
-//		this.possibleStates.add(startState);
-//	}
 	
 	public StateGenerator() {
 
 	}
-
-//	public void generatePossibleState(State state) {
-////		if (this.possibleStates.size() == maxStates) {
-////			return; // IF WE DON'T ACTIVATE THIS CODE IT WILL GO INFINITE.
-////		}
-//		
-//		//TODO: last time we debugged the code when creating a new state it was actually adding disk 1 to each new pole.
-//		//we should fix it.
-//		@SuppressWarnings("rawtypes")
-//		Stack[] tempPins = new Stack[3];
-//		tempPins[0] = (Stack) state.pin1.clone();
-//		tempPins[1] = (Stack) state.pin2.clone();
-//		tempPins[2] = (Stack) state.pin3.clone();
-//
-//		for (int i = 0; i < tempPins.length; i++) {
-//
-//			if (!tempPins[i].isEmpty()) {
-//
-//				int topDisk = (int) tempPins[i].pop();
-//
-//				for (int j = 0; j < tempPins.length; j++) {
-//					if (j != i) {
-//						tempPins[j].push(topDisk);
-//						State newState = new State(tempPins);
-//
-//						if (!stateExists(newState)) {
-//							possibleStates.add(newState);
-//							generatePossibleState(newState);
-//						}
-//					}
-//				}
-//
-//				// restore initial pins iin order to generate valid states
-//				tempPins = state.pins;
-//			}
-//		}
-//	}
 
 	public void generateHardCodedStates() {
 		stateSpace = new State[12];
