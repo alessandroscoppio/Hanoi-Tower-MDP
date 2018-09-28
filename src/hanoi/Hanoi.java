@@ -1,7 +1,9 @@
 package hanoi;
 
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Hanoi {
 
@@ -30,7 +32,68 @@ public class Hanoi {
         generateRewardFunction();
     }
 
-    public void executePolicyIteration() {
+    public void policyIteration() {
+
+        //Attributes for policy iteration
+        double[] rewards = new double[12];
+
+
+        //Initialize first policy for each state with action 0 (move from pin1 to pin2)
+        for(int i = 0; i < 12; i++){
+            policies[i] = 0;
+        }
+
+        boolean unchanged;
+
+//        Random randIntGen = new Random();
+
+        do {
+            for(int stateIdx = 0; stateIdx < 12; stateIdx++){
+
+                rewards = getRewardFunction(int stateIdx, int actionIdx)
+
+            }
+            //Calculate utility values of all states given the policy
+            unchanged = true;
+            for(int stateIdx = 0; stateIdx < 12; stateIdx++){
+                int newPolicy =
+            }
+
+
+
+
+
+
+
+        } while (unchanged);
+
+
+
+
+
+
+
+
+
+
+
+        //choose an initial policy Pi;
+        //repeat
+        //calculate the utility values of all states given ;
+        //unchanged := true;
+        //for all s 2 S do
+        //a := argmaxa02A(s)[r (s; a) +
+        //
+        //P
+        //s02S t(s; a0; s0)  u(s0; )];
+        //if (s) 6= a then
+        //(s) := a;
+        //unchanged := false;
+        //end if
+        //end for
+        //until unchanged;
+        //return ;
+
 
     }
 
