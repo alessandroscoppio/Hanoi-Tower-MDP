@@ -8,7 +8,7 @@ public class Hanoi {
 
     private List<int[]> actions = new ArrayList<>();
     private State[] states;
-    private List<List<State>> landingStates;
+    private double[][][] transitionFunction;
     private int[] rewards;
 	private int[] originalRewards;
     private double epsilon = 2.220446049250313e-16;
@@ -21,7 +21,7 @@ public class Hanoi {
 
         generateActions();
 	    generateOriginalRewards();
-	    generateLandingStates();
+	    generateTransitionFunction();
     }
 
     public void executePolicyIteration() {
@@ -73,7 +73,7 @@ public class Hanoi {
         }
     }
 
-    public double summaryOfProbabilitiesTimesUtility(State state, int[] action, double[] utilities) {
+    private double summaryOfProbabilitiesTimesUtility(State state, int[] action, double[] utilities) {
         double utilitySum = 0;
         List<State> possibleStates = getPossibleNextStatesFromState(state, action);
 
@@ -83,7 +83,7 @@ public class Hanoi {
         return utilitySum;
     }
 
-    public int getIndexOfState(State state) {
+    private int getIndexOfState(State state) {
         for (int i = 0; i < states.length; i++) {
             if (state.isSameState(states[i]))
                 return i;
@@ -91,7 +91,7 @@ public class Hanoi {
         return -1;
     }
 
-    public double getRewards(State currentState, int[] actionToPerform) {
+    private double getRewards(State currentState, int[] actionToPerform) {
         List<State> possibleLandingStates = getPossibleNextStatesFromState(currentState, null);
 
         double cumulativeReward = 0;
@@ -111,11 +111,8 @@ public class Hanoi {
      * @param target
      * @return Double
      */
-    private double transitionFunction(State source, int[] action, State target) {
-        if (target.pins[action[1] - 1].size() == source.pins[action[1] - 1].size())
-            return 0.1;
-        else
-            return 0.9;
+    private double transitionFunction(State source, int action, State target) {
+        return transitionFunction[getIndexOfState(source)][action][getIndexOfState(target)];
     }
 
     /**
@@ -175,36 +172,9 @@ public class Hanoi {
             tempValue = (int) successState.pins[action[0] - 1].pop();
             successState.pins[action[1] - 1].push(tempValue);
             landingStates.add(successState);
-
-//            if (shouldReturnFailedStates) {
-//	            State failState = new State(pinsCopy);
-//	            int[] failAction = getFailActionFromAction(action);
-//	            tempValue = (int) failState.pins[failAction[0] - 1].pop();
-//	            failState.pins[failAction[1] - 1].push(tempValue);
-//	            landingStates.add(failState);
-//            }
         }
 
         return landingStates;
-    }
-
-    /**
-     * Generates an array containing all of the possible actions
-     */
-    private void generateActions() {
-
-        this.actions.add(new int[]{1, 2});
-
-        this.actions.add(new int[]{1, 3});
-
-        this.actions.add(new int[]{2, 1});
-
-        this.actions.add(new int[]{2, 3});
-
-        this.actions.add(new int[]{3, 1});
-
-        this.actions.add(new int[]{3, 2});
-
     }
 
     private List<Integer> getPossibleActions(State state) {
@@ -227,18 +197,6 @@ public class Hanoi {
         }
     }
 
-    private int[] getFailActionFromAction(int[] successAction) {
-    	for (int i = 0; i < actions.size(); i++) {
-    		//If the action that we are iterating at the moment has the same origin pin but at the same
-		    //time not the same target pin, then this is the action you need to perform to reach the failed state
-    		if (actions.get(i)[0] == successAction[0] && actions.get(i)[1] != successAction[1]) {
-    			return actions.get(i);
-		    }
-	    }
-
-	    return null;
-    }
-
     private void generateOriginalRewards() {
 	    originalRewards = new int[12];
 	    for (int i = 0; i < 12; i++) {
@@ -251,10 +209,125 @@ public class Hanoi {
 	    }
     }
 
-    private void generateLandingStates() {
-	    landingStates = new ArrayList<>();
-	    for (int i = 0; i < states.length; i++) {
-		    landingStates.add(getPossibleNextStatesFromState(states[i], null));
-	    }
+	/**
+	 * Generates an array containing all of the possible actions
+	 */
+	private void generateActions() {
+
+		this.actions.add(new int[]{1, 2});
+
+		this.actions.add(new int[]{1, 3});
+
+		this.actions.add(new int[]{2, 1});
+
+		this.actions.add(new int[]{2, 3});
+
+		this.actions.add(new int[]{3, 1});
+
+		this.actions.add(new int[]{3, 2});
+
+	}
+
+    private void generateTransitionFunction() {
+		transitionFunction = new double[12][6][12];
+		//Actions
+
+		// State 1
+		transitionFunction[0][0][0] = 0.9; //Action 0 = 12
+		transitionFunction[0][0][1] = 0.1;
+		transitionFunction[0][1][0] = 0.1; //Action 1 = 13
+		transitionFunction[0][1][1] = 0.9;
+
+		// State 2
+	    transitionFunction[1][0][3] = 0.9; //Action 0 = 12
+	    transitionFunction[1][0][4] = 0.1;
+	    transitionFunction[1][1][4] = 0.9; //Action 1 = 13
+	    transitionFunction[1][1][3] = 0.1;
+	    transitionFunction[1][2][0] = 0.9; //Action 2 = 21
+	    transitionFunction[1][2][2] = 0.1;
+	    transitionFunction[1][3][2] = 0.9; //Action 3 - 23
+	    transitionFunction[1][3][0] = 0.1;
+
+	    //State 3
+	    transitionFunction[2][0][3] = 0.9;
+	    transitionFunction[2][0][10] = 0.1;
+	    transitionFunction[2][1][10] = 0.9;
+	    transitionFunction[2][1][11] = 0.1;
+	    transitionFunction[2][4][0] = 0.9;
+	    transitionFunction[2][4][1] = 0.1;
+	    transitionFunction[2][5][1] = 0.9;
+	    transitionFunction[2][5][0] = 0.1;
+
+	    //State 4
+	    transitionFunction[3][2][1] = 0.9;
+	    transitionFunction[3][2][4] = 0.1;
+	    transitionFunction[3][3][4] = 0.9;
+	    transitionFunction[3][3][1] = 0.1;
+
+	    //State 5
+	    transitionFunction[4][3][5] = 0.9;
+	    transitionFunction[4][3][6] = 0.1;
+	    transitionFunction[4][2][6] = 0.9;
+	    transitionFunction[4][2][5] = 0.1;
+	    transitionFunction[4][4][1] = 0.9;
+	    transitionFunction[4][4][3] = 0.1;
+	    transitionFunction[4][5][3] = 0.9;
+	    transitionFunction[4][5][1] = 0.1;
+
+	    //State 6
+	    transitionFunction[5][4][6] = 0.9;
+	    transitionFunction[5][4][4] = 0.1;
+	    transitionFunction[5][5][4] = 0.9;
+	    transitionFunction[5][5][6] = 0.1;
+
+	    //State 7
+	    transitionFunction[6][0][4] = 0.9;
+	    transitionFunction[6][0][5] = 0.1;
+	    transitionFunction[6][1][5] = 0.9;
+	    transitionFunction[6][1][4] = 0.1;
+	    transitionFunction[6][4][7] = 0.9;
+	    transitionFunction[6][4][8] = 0.1;
+	    transitionFunction[6][5][8] = 0.9;
+	    transitionFunction[6][5][7] = 0.1;
+
+	    //State 8
+	    transitionFunction[7][0][8] = 0.9;
+	    transitionFunction[7][0][6] = 0.1;
+	    transitionFunction[7][1][6] = 0.9;
+	    transitionFunction[7][1][8] = 0.1;
+
+	    //State 9
+	    transitionFunction[8][0][9] = 0.9; //Action 0 = 12
+	    transitionFunction[8][0][11] = 0.1;
+	    transitionFunction[8][1][11] = 0.9; //Action 1 = 13
+	    transitionFunction[8][1][9] = 0.1;
+	    transitionFunction[8][2][7] = 0.9; //Action 2 = 21
+	    transitionFunction[8][2][6] = 0.1;
+	    transitionFunction[8][3][6] = 0.9; //Action 3 = 23
+	    transitionFunction[8][3][7] = 0.1;
+
+	    //State 10
+	    transitionFunction[9][2][8] = 0.9; //Action 2 = 21
+	    transitionFunction[9][2][9] = 0.1;
+	    transitionFunction[9][3][11] = 0.9; //Action 3 = 23
+	    transitionFunction[9][3][8] = 0.1;
+
+
+	    //State 11
+	    transitionFunction[10][4][2] = 0.9; //Action 4 = 31
+	    transitionFunction[10][4][11] = 0.1;
+	    transitionFunction[10][5][11] = 0.9; //Action 5 = 32
+	    transitionFunction[10][5][2] = 0.1;
+
+
+	    //State 12
+	    transitionFunction[11][4][8] = 0.9; //Action 4 = 31
+	    transitionFunction[11][4][9] = 0.1;
+	    transitionFunction[11][5][9] = 0.9; //Action 5 = 32
+	    transitionFunction[11][5][8] = 0.1;
+	    transitionFunction[11][2][2] = 0.9; //Action 2 = 21
+	    transitionFunction[11][2][10] = 0.1;
+	    transitionFunction[11][3][10] = 0.9; //Action 3 - 23
+	    transitionFunction[11][3][2] = 0.1;
     }
 }
