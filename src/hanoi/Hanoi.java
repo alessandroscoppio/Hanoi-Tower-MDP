@@ -1,14 +1,11 @@
 package hanoi;
 
-import javax.swing.plaf.synth.SynthDesktopIconUI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 public class Hanoi {
 
     private List<int[]> actions = new ArrayList<>();
-    private State[] states;
     private double[][][] transitionFunction;
     private double[][][] rewardFunction;
 
@@ -27,10 +24,6 @@ public class Hanoi {
 
 
     public void prepare() {
-        StateGenerator stateGenerator = new StateGenerator();
-        stateGenerator.generateHardCodedStates();
-        states = stateGenerator.getStateSpace();
-
         generateActions();
         generateOriginalRewards();
         generateTransitionFunction();
@@ -47,7 +40,7 @@ public class Hanoi {
             delta = 0;
 
             //For state s belonging to state space
-                for (int stateIdx = 0; stateIdx < 12; stateIdx++) {
+            for (int stateIdx = 0; stateIdx < 12; stateIdx++) {
 
                 List<Integer> possibleActions = getPossibleActions(stateIdx);
                 double[] stateUtility = new double[possibleActions.size()];
@@ -79,7 +72,6 @@ public class Hanoi {
 
         System.out.println("Policies: ");
         for (int stateIdx = 0; stateIdx < 12; stateIdx++) {
-//            policies[stateIdx] = getArgMax(nextUtility);
             System.out.println("policy: " + policies[stateIdx] + "   Utility: " + nextUtility[stateIdx]);
         }
 
@@ -106,16 +98,6 @@ public class Hanoi {
         }
         return possibleActions;
 
-    }
-
-    /**
-     * Prints the layout of disks in each of the states generated Mostly used for
-     * debugging
-     */
-    private void printStatesRepresentation() {
-        for (int i = 0; i < states.length; i++) {
-            states[i].printStateInTerminal();
-        }
     }
 
     private void generateOriginalRewards() {
@@ -196,10 +178,7 @@ public class Hanoi {
         transitionFunction[4][5][1] = 0.1;
 
         //State 6
-        transitionFunction[5][4][6] = 0.0;
-        transitionFunction[5][4][4] = 0.0;
-        transitionFunction[5][5][4] = 0.0;
-        transitionFunction[5][5][6] = 0.0;
+        // Absorbing state
 
         //State 7
         transitionFunction[6][0][4] = 0.9;
@@ -233,13 +212,11 @@ public class Hanoi {
         transitionFunction[9][3][11] = 0.9; //Action 3 = 23
         transitionFunction[9][3][8] = 0.1;
 
-
         //State 11
         transitionFunction[10][4][2] = 0.9; //Action 4 = 31
         transitionFunction[10][4][11] = 0.1;
         transitionFunction[10][5][11] = 0.9; //Action 5 = 32
         transitionFunction[10][5][2] = 0.1;
-
 
         //State 12
         transitionFunction[11][4][8] = 0.9; //Action 4 = 31
@@ -298,10 +275,6 @@ public class Hanoi {
         return trimArray(transitionFunction[stateIdx][actionIdx]);
     }
 
-    public double[][] getTransitionFunction(int stateIdx) {
-
-        return transitionFunction[stateIdx];
-    }
     //TODO: if we have time move "util" function in a util class
     public double[] trimArray(double[] startArray){
 
@@ -323,55 +296,4 @@ public class Hanoi {
 
         return newArray;
     }
-
-    public int[] trimArray(double[][] startArray){
-
-        List<Integer> tempValues = new ArrayList<>();
-        int[] possibleActions;
-        int size = 0;
-
-        for(int actionIdx = 0; actionIdx < startArray.length; actionIdx++){
-            if(trimArray(startArray[actionIdx]).length != 0){
-                size++;
-                tempValues.add(actionIdx);
-            }
-        }
-
-        possibleActions = new int[size];
-        for(int v = 0; v < tempValues.size(); v++){
-            possibleActions[v] = tempValues.get(v);
-        }
-
-        return possibleActions;
-    }
-
-    public double getMax(double[] array){
-
-        if(array.length == 0) return 0;
-        double max = array[0];
-        for(int idx = 1; idx < array.length; idx++){
-            if(array[idx] > max){
-                max = array[idx];
-            }
-        }
-        return max;
-    }
-
-    public int getArgMax(double[] array){
-
-        int indexofMaxUtility = -1;
-
-        double max = array[0];
-        for(int idx = 1; idx < array.length; idx++){
-            if(array[idx] > max){
-                max = array[idx];
-                indexofMaxUtility = idx;
-            }
-        }
-        return indexofMaxUtility;
-    }
-
-//    public double[] getTransitionFunction(int stateIdx, int landStateIdx) {
-//        return transitionFunction[stateIdx][actionIdx];
-//    }
 }
