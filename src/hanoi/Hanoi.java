@@ -5,7 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import Jama.Matrix;
+
 public class Hanoi {
+
+    private static final int STATES_NUMBER = 12;
 
     private List<int[]> actions = new ArrayList<>();
     private double[][][] transitionFunction;
@@ -15,14 +19,14 @@ public class Hanoi {
     private int[] originalRewards;
     private double epsilon = 2.220446049250313e-16;
 
+    //TODO: put yellow variables inside of function that are using them
     //Attributes to perform value iteration
-    double[] previousUtility = new double[12];
-    double[] nextUtility = new double[12];
+    double[] previousUtility = new double[STATES_NUMBER];
+    double[] nextUtility = new double[STATES_NUMBER];
     double delta;
     private double discountFactor = 0.9;
 
-    int[] policies = new int[12];
-
+    int[] policies = new int[STATES_NUMBER];
 
 
     public void prepare() {
@@ -35,66 +39,80 @@ public class Hanoi {
     public void policyIteration() {
 
         //Attributes for policy iteration
-        double[] rewards = new double[12];
-
+        double[] rewards = new double[STATES_NUMBER];
+        double[][] utilityMatrix = getIdentityMatrix(STATES_NUMBER);
+        double[] utilities = new double[STATES_NUMBER];
+        boolean unchanged;
 
         //Initialize first policy for each state with action 0 (move from pin1 to pin2)
-        for(int i = 0; i < 12; i++){
+        for (int i = 0; i < STATES_NUMBER; i++) {
             policies[i] = 0;
         }
 
-        boolean unchanged;
-
-//        Random randIntGen = new Random();
-
         do {
-            for(int stateIdx = 0; stateIdx < 12; stateIdx++){
+            //TODO: refactor extract the calculation of utilities in a function
+            for (int row = 0; row < STATES_NUMBER; row++) {
+                for (int col = 0; col < STATES_NUMBER; col++) {
 
-                rewards = getRewardFunction(int stateIdx, int actionIdx)
+                    utilityMatrix[row][col] += -(discountFactor * getTransitionFunction(row, policies[row], col));
+
+                }
+            }
+            for (int stateIdx = 0; stateIdx < STATES_NUMBER; stateIdx++) {
+
+                rewards[stateIdx] = getRewardFunction(stateIdx, policies[stateIdx]);
 
             }
-            //Calculate utility values of all states given the policy
+
+            Matrix lhs = new Matrix(utilityMatrix);
+            Matrix rhs = new Matrix(rewards, STATES_NUMBER);
+            Matrix ans = lhs.solve(rhs);
+
+            utilities = ans.getColumnPackedCopy();
             unchanged = true;
-            for(int stateIdx = 0; stateIdx < 12; stateIdx++){
-                int newPolicy =
+
+            System.out.print("asdasdasd");
+            for (int stateIdx = 0; stateIdx < STATES_NUMBER; stateIdx++) {
+
+                List<Integer> possibleActionsGivenState = getPossibleActions(stateIdx);
+                double maxUtility = -Double.MAX_VALUE;
+                int maxUtilityActionIdx = -1;
+
+                for (int actionIdx : possibleActionsGivenState) {
+                    double currentUtility = getRewardFunction(stateIdx, actionIdx) + discountFactor * getSumTransitionTimesUtility(stateIdx, actionIdx, utilities);
+
+                    if(currentUtility > maxUtility) {
+                        maxUtility = currentUtility;
+                        maxUtilityActionIdx = actionIdx;
+                    }
+                }
+                if (possibleActionsGivenState.size() != 0) {
+                    if (policies[stateIdx] != maxUtilityActionIdx) {
+                        policies[stateIdx] = maxUtilityActionIdx;
+                        unchanged = false;
+                    }
+                }
             }
 
+        } while (!unchanged);
+
+        System.out.println("Policies: ");
+        for (int stateIdx = 0; stateIdx < STATES_NUMBER; stateIdx++) {
+            System.out.println("policy: " + policies[stateIdx] + "   Utility: " + utilities[stateIdx]);
+        }
 
 
+    }
 
-
-
-
-        } while (unchanged);
-
-
-
-
-
-
-
-
-
-
-
-        //choose an initial policy Pi;
-        //repeat
-        //calculate the utility values of all states given ;
-        //unchanged := true;
-        //for all s 2 S do
-        //a := argmaxa02A(s)[r (s; a) +
-        //
-        //P
-        //s02S t(s; a0; s0)  u(s0; )];
-        //if (s) 6= a then
-        //(s) := a;
-        //unchanged := false;
-        //end if
-        //end for
-        //until unchanged;
-        //return ;
-
-
+    //generate an identity matrix of size "size"
+    private double[][] getIdentityMatrix(int size) {
+        double[][] matrix = new double[size][size];
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                if (row == col) matrix[row][col] = 1;
+            }
+        }
+        return matrix;
     }
 
     public void valueIteration() {
@@ -103,7 +121,7 @@ public class Hanoi {
             delta = 0;
 
             //For state s belonging to state space
-            for (int stateIdx = 0; stateIdx < 12; stateIdx++) {
+            for (int stateIdx = 0; stateIdx < STATES_NUMBER; stateIdx++) {
 
                 List<Integer> possibleActions = getPossibleActions(stateIdx);
                 double[] stateUtility = new double[possibleActions.size()];
@@ -111,7 +129,7 @@ public class Hanoi {
                 double maxUtility = -100000000;
                 int maxUtilityActionIdx = -1;
                 for (int actionIdx : possibleActions) {
-                    stateUtility[stateUtilityIdx] = getRewardFunction(stateIdx, actionIdx) + discountFactor * getSumTransitionTimesUtility(stateIdx, actionIdx);
+                    stateUtility[stateUtilityIdx] = getRewardFunction(stateIdx, actionIdx) + discountFactor * getSumTransitionTimesUtility(stateIdx, actionIdx, previousUtility);
                     if (stateUtility[stateUtilityIdx] > maxUtility) {
                         maxUtility = stateUtility[stateUtilityIdx];
                         maxUtilityActionIdx = actionIdx;
@@ -123,29 +141,29 @@ public class Hanoi {
                     policies[stateIdx] = maxUtilityActionIdx;
                 }
 
-                if(Math.abs(nextUtility[stateIdx] - previousUtility[stateIdx]) > delta){
+                if (Math.abs(nextUtility[stateIdx] - previousUtility[stateIdx]) > delta) {
                     delta = Math.abs(nextUtility[stateIdx] - previousUtility[stateIdx]);
                 }
             }
-            System.arraycopy(nextUtility, 0, previousUtility, 0, 12);
+            System.arraycopy(nextUtility, 0, previousUtility, 0, STATES_NUMBER);
 
             System.out.println("Current Delta: ");
             System.out.println(delta);
-        } while(delta > epsilon);
+        } while (delta > epsilon);
 
         System.out.println("Policies: ");
-        for (int stateIdx = 0; stateIdx < 12; stateIdx++) {
+        for (int stateIdx = 0; stateIdx < STATES_NUMBER; stateIdx++) {
             System.out.println("policy: " + policies[stateIdx] + "   Utility: " + nextUtility[stateIdx]);
         }
 
 
     }
 
-    private double getSumTransitionTimesUtility(int stateIdx, int actionIdx) {
+    private double getSumTransitionTimesUtility(int stateIdx, int actionIdx, double[] utility) {
         List<Integer> possibleLandingStates = getPossibleLandingStates(stateIdx, actionIdx);
         double sum = 0;
-        for(int landStateIdx : possibleLandingStates){
-            sum += getTransitionFunction(stateIdx, actionIdx, landStateIdx) * previousUtility[landStateIdx];
+        for (int landStateIdx : possibleLandingStates) {
+            sum += getTransitionFunction(stateIdx, actionIdx, landStateIdx) * utility[landStateIdx];
         }
 
         return sum;
@@ -154,8 +172,8 @@ public class Hanoi {
     private List<Integer> getPossibleActions(int stateIdx) {
         List<Integer> possibleActions = new ArrayList<>();
 
-        for(int actionIdx = 0; actionIdx < 6; actionIdx++){
-            if(trimArray(getTransitionFunction(stateIdx, actionIdx)).length != 0){
+        for (int actionIdx = 0; actionIdx < 6; actionIdx++) {
+            if (trimArray(getTransitionFunction(stateIdx, actionIdx)).length != 0) {
                 possibleActions.add(actionIdx);
             }
         }
@@ -164,8 +182,8 @@ public class Hanoi {
     }
 
     private void generateOriginalRewards() {
-        originalRewards = new int[12];
-        for (int i = 0; i < 12; i++) {
+        originalRewards = new int[STATES_NUMBER];
+        for (int i = 0; i < STATES_NUMBER; i++) {
             if (i == 5)
                 originalRewards[i] = 100;
             else if (i == 3 || i == 7 || i == 10)
@@ -195,14 +213,14 @@ public class Hanoi {
     }
 
     private void generateTransitionFunction() {
-        transitionFunction = new double[12][6][12];
+        transitionFunction = new double[STATES_NUMBER][6][STATES_NUMBER];
         //Actions
 
         // State 1
-        transitionFunction[0][0][0] = 0.9; //Action 0 = 12
-        transitionFunction[0][0][1] = 0.1;
-        transitionFunction[0][1][0] = 0.1; //Action 1 = 13
-        transitionFunction[0][1][1] = 0.9;
+        transitionFunction[0][0][1] = 0.9; //Action 0 = 12
+        transitionFunction[0][0][2] = 0.1;
+        transitionFunction[0][1][2] = 0.9; //Action 1 = 13
+        transitionFunction[0][1][1] = 0.1;
 
         // State 2
         transitionFunction[1][0][3] = 0.9; //Action 0 = 12
@@ -271,7 +289,7 @@ public class Hanoi {
 
         //State 10
         transitionFunction[9][2][8] = 0.9; //Action 2 = 21
-        transitionFunction[9][2][9] = 0.1;
+        transitionFunction[9][2][11] = 0.1;
         transitionFunction[9][3][11] = 0.9; //Action 3 = 23
         transitionFunction[9][3][8] = 0.1;
 
@@ -296,26 +314,26 @@ public class Hanoi {
         return transitionFunction[stateIdx][actionIdx][landStateIdx];
     }
 
-    public void generateRewardFunction(){
-        rewardFunction = new double[12][6][12];
-        for(int s = 0; s < 12; s++){
-            for(int a = 0; a < 6; a++){
-                for(int sp = 0; sp < 12; sp++){
+    public void generateRewardFunction() {
+        rewardFunction = new double[STATES_NUMBER][6][STATES_NUMBER];
+        for (int s = 0; s < STATES_NUMBER; s++) {
+            for (int a = 0; a < 6; a++) {
+                for (int sp = 0; sp < STATES_NUMBER; sp++) {
                     rewardFunction[s][a][sp] = -1;
-                    if(sp == 5) rewardFunction[s][a][sp] = 100;
-                    if(sp == 3 || sp == 7 || sp == 10) rewardFunction[s][a][sp] = -10;
+                    if (sp == 5) rewardFunction[s][a][sp] = 100;
+                    if (sp == 3 || sp == 7 || sp == 10) rewardFunction[s][a][sp] = -10;
                 }
             }
         }
     }
 
-    public double getRewardFunction(int stateIdx, int actionIdx, int landStateIdx){
+    public double getRewardFunction(int stateIdx, int actionIdx, int landStateIdx) {
         return rewardFunction[stateIdx][actionIdx][landStateIdx];
     }
 
-    public double getRewardFunction(int stateIdx, int actionIdx){
+    public double getRewardFunction(int stateIdx, int actionIdx) {
         double reward = 0;
-        for(int landStateIdx = 0; landStateIdx < 12; landStateIdx++){
+        for (int landStateIdx = 0; landStateIdx < STATES_NUMBER; landStateIdx++) {
             reward += getTransitionFunction(stateIdx, actionIdx, landStateIdx) * getRewardFunction(stateIdx, actionIdx, landStateIdx);
         }
         return reward;
@@ -325,8 +343,8 @@ public class Hanoi {
 
         List<Integer> landingStatesIdxs = new ArrayList<>();
 
-        for(int landStateIdx = 0; landStateIdx < 12; landStateIdx++){
-            if(transitionFunction[stateIdx][actionIdx][landStateIdx] != 0.0){
+        for (int landStateIdx = 0; landStateIdx < STATES_NUMBER; landStateIdx++) {
+            if (transitionFunction[stateIdx][actionIdx][landStateIdx] != 0.0) {
                 landingStatesIdxs.add(landStateIdx);
             }
         }
@@ -339,20 +357,20 @@ public class Hanoi {
     }
 
     //TODO: if we have time move "util" function in a util class
-    public double[] trimArray(double[] startArray){
+    public double[] trimArray(double[] startArray) {
 
         List<Double> tempValues = new ArrayList<>();
         double[] newArray;
         int sizeOfNewArray = 0;
-        for(int idx = 0; idx < startArray.length; idx++){
-            if (startArray[idx] != 0.0){
+        for (int idx = 0; idx < startArray.length; idx++) {
+            if (startArray[idx] != 0.0) {
                 sizeOfNewArray++;
                 tempValues.add(startArray[idx]);
             }
         }
 
         newArray = new double[sizeOfNewArray];
-        for(int v = 0; v < tempValues.size(); v++){
+        for (int v = 0; v < tempValues.size(); v++) {
 
             newArray[v] = tempValues.get(v);
         }
