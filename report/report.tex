@@ -13,6 +13,8 @@
 \usepackage{cleveref}
 \usepackage[thinspace,thinqspace,squaren,textstyle]{SIunits}
 \usepackage{float}
+\usepackage{pgfplots}
+\usepackage{tcolorbox}
 \restylefloat{figure}
 \parindent 0pt
 \newcommand\Tstrut{\rule{0pt}{2.5ex}}
@@ -36,7 +38,7 @@
 \numberwithin{table}{section} 
 \renewcommand{\thetable}{\arabic{section}.\arabic{table}}
 
-\numberwithin{figure}{section} 
+\numberwithin{figure}{secation} 
 \renewcommand{\thefigure}{\arabic{section}.\arabic{figure}}
 
 % FORMAT PAGE
@@ -109,25 +111,190 @@
 		\pagenumbering{arabic}
     \setcounter{page}{1}
 		\section{Introduction}
-		\label{sec_Methodology}
+		
 		The ''Tower of Hanoi'' problem to solve in this assignment is a mathematical puzzle consisting of three pins and two disks of different sizes, namely  $disk A$ and $disk B$ such that $disk A > disk B$.
+		For each step the agent can perform an action: move the top disk from a source pin to a target pin. 
 		The puzzle is considered solved when $disk A$ and $disk B$ have been transposed to the third pin, with smaller disk on top of the bigger one. Reaching this configuration will declare the end of the puzzle, as well as its solution. Having a finite number of states $S$ and actions $A$, this problem can be easily modeled as a Markov Decision Process (MDP).
 		
 
 		\subsection{States Description}
-		The number of possible states for a "usual" puzzle with n disks is 3n
-		since each disk can be on
-		2
-		one of the three pegs
-		\subsection{Actions  Description}
+		The number of possible states for a "usual" Tower of Hanoi puzzle with n disks is $3^{n}$. Differently, in our specific environment, it is possible for each of the three pins to have $diskA$ \textbf{on top} of $diskB$, that means adding three more possible states, resulting in a total of 12:
+		
 
+ \begin{table}[!htb]
+    \caption{State Representation}
+    \begin{minipage}{.5\linewidth}
+      \centering
+        \begin{tabular}{|r|ccc|}\hline
+        State&pin1&pin2&pin3\\ \hline
+        s1   &B   &| &|     \\ 
+             &A   &| &|     \\ \hline 
+             
+        s2   &|   &| &|     \\ 
+             &A   &B &|     \\ \hline
+             
+        s3   &|   &| &|     \\ 
+             &A   &| &B     \\ \hline 
+             
+        s4   &|   &A &|     \\ 
+             &|   &B &|     \\ \hline 
+             
+        s5   &|   &| &|     \\ 
+             &|   &B &A     \\ \hline
+             
+        s6   &|   &| &B     \\ 
+             &|   &| &A     \\ \hline
+        \end{tabular}
+    \end{minipage}%
+    \begin{minipage}{.5\linewidth}
+      \centering
+         \begin{tabular}{|r|ccc|}\hline
+        State&pin1&pin2&pin3\\ \hline
+        s7   &|   &| &|     \\ 
+             &B   &| &A     \\ \hline
+             
+        s8   &A   &| &|     \\ 
+             &B   &| &|     \\ \hline
+             
+        s9   &|   &| &|     \\ 
+             &B   &A &|     \\ \hline 
+             
+        s10   &|   &B &|     \\ 
+             &|   &A &|     \\ \hline 
+             
+        s11  &|   &| &A     \\ 
+             &|   &| &B    \\ \hline
+             
+        s12  &|   &| &|     \\ 
+             &|   &A &B     \\ \hline
+        \end{tabular}
+    \end{minipage} 
+\end{table}
+              
+State $S_{6}$ in Table 1.1 is the absorbing state: the reward in this state will be 100 and the probability of performing every action will be zero in order to ''trap'' the execution in that final state.
+
+		\subsection{Actions  Description}
+        An action is defined as the movement of the top disk from a source pin to a target pin. All of the actions can be found in the table below:
+        
+        \begin{table}[!htb]
+            \caption{Action Representation}
+            \begin{tabular}{|c|c|c|} \hline
+            Action & Source pin [From] & Target pin [To] \\ \hline
+            $a_{1}$ & 1 & 2 \\ 
+            $a_{2}$ & 1 & 3 \\ 
+            $a_{3}$ & 2 & 1 \\ 
+            $a_{4}$ & 2 & 3 \\ 
+            $a_{5}$ & 3 & 1 \\ 
+            $a_{6}$ & 3 & 2 \\ \hline
+            \end{tabular}
+        \end{table}
 		
 		\section{Optimal Policy}
+		Both \textbf{Policy Iteration} and \textbf{Value iteration}, produced the same optimal policies $\pi^{*}(s_{i})$, with the exception of the absorbing state which is never being updated with a new policy.
 		
-		\section{Utility}
+        $\begin{array}{cc}
+        \pi^{*}(s_{1}) = a_{1} & \pi^{*}(s_{7}) = a_{2} \\
+        \pi^{*}(s_{2}) = a_{2} & \pi^{*}(s_{8}) = a_{2} \\
+        \pi^{*}(s_{3}) = a_{6} & \pi^{*}(s_{9}) = a_{4} \\
+        \pi^{*}(s_{4}) = a_{4} & \pi^{*}(s_{10}) = a_{3} \\
+        \pi^{*}(s_{5}) = a_{4} & \pi^{*}(s_{11}) = a_{5} \\
+        \pi^{*}(s_{6}) = a_{1} & \pi^{*}(s_{12}) = a_{5} \\
+        \end{array}$
 		
+		By using the Optimal Policy starting from State 1, the Optimal Route is defined as:
+		
+		$S_{1} \rightarrow S_{2} \rightarrow S_{5} \rightarrow S_{6}$
+        \section{Optimal Utility}
+		Optimal Utility $U^{*}(s)$ calculated using the Optimal Policy $\pi^{*}(s)$, for $ s \in S$
+		
+		$\begin{array}{ll}\hline
+        U^{*}(s_{1}) = 75.387157 & U^{*}(s_{7}) = 98.791209 \\
+        U^{*}(s_{2}) = 85.928781 & U^{*}(s_{8}) = 86.754469 \\
+        U^{*}(s_{3}) = 75.387157 & U^{*}(s_{9}) = 85.928781 \\
+        U^{*}(s_{4}) = 86.754469 & U^{*}(s_{10}) = 75.387157 \\
+        U^{*}(s_{5}) = 98.791209 & U^{*}(s_{11}) = 66.848441 \\
+        U^{*}(s_{6}) = 0.000000 & U^{*}(s_{12}) = 75.387157 \\ \hline
+        \end{array}$
+        
+         It is worth mentioning that Value iteration and Policy Iteration returned exactly the same values. Nevertheless, Policy Iteration converged in 2ms against 3.5ms of value iteration; Furthermore, the iterations needed to converge were 4 for policy iteration, instead of the 22 iterations needed by value iteration method.
 		\section{Evaluation of Convergence Speed}
-
+		Value iteration reaches delta values close to zero already from the $6_{th}$ iteration. The Value Iteration was performed with the minimum $e$ possible which is 2.220446049250313e-16.
 		
-	\end{document}
+		{\centering
+		\begin{tcolorbox}[halign=center,width=7cm]
+		\Large$\delta = \max_{s \in S} | u_{i}(s) - u_{i+1}(s) | $
+        \end{tcolorbox}
+        }
+		\begin{table}[!htb]
+		\caption{Delta value for each iteration}
+    		$\begin{array}{|c|c|c|c|} \hline
+                Iteration & Delta & Iteration & Delta \\ \hline
+                0 & 89.9 & 11 & 1.0266141060810696E-5 \\
+                1 & 72.72900000000001 & 12 & 1.129589620063598E-6 \\
+                2 & 58.10049000000001 & 13 & 1.2199848242744338E-7 \\
+                3 & 52.29044100000001 & 14 & 1.2978688346265699E-8 \\
+                4 & 14.255543970000005 & 15 & 1.3627783346237266E-9 \\
+                5 & 2.567119845600004 & 16 & 1.4155432381812716E-10 \\
+                6 & 0.38578896513000416 & 17 & 1.4566126083082054E-11 \\
+                7 & 0.05208820644912748 & 18 & 1.4637180356658064E-12 \\
+                8 & 0.006568322665856385 & 19 & 1.8474111129762605E-13 \\
+                9 & 7.88246501755907E-4 & 20 & 1.4210854715202004E-14 \\
+                10 & 9.125137931675908E-5 & 21 & 0.0 \\ \hline
+            \end{array}$
+        \end{table}
+        \begin{center}
+        \begin{tikzpicture}[center]
+        \begin{axis}[
+            xlabel={Iterations},
+            ylabel={$u_{i}(s) - u_{i+1}(s)$},
+            xmin=0, xmax=22,
+            ymin=0, ymax=100,
+           	xtick={0,6,11,16,22},
+           	ytick={0,20,40,60,80,89.9,100},
+            legend pos=north east,
+            ymajorgrids=true,
+            grid style=dashed,
+        ]
+        \addplot[
+            color=red,
+            mark=none,
+            ]
+            coordinates {
+            (0,89.9)
+            (1,72.72900000000001)
+            (2,58.10049000000001)
+            (3,52.29044100000001)
+            (4,14.255543970000005)
+            (5,2.567119845600004)
+            (6,0.38578896513000416)
+            (7,0.05208820644912748)
+            (8,0.006568322665856385)
+            (9,7.88246501755907E-4)
+            (10,9.125137931675908E-5)
+            (11,1.0266141060810696E-5)
+            (12,1.129589620063598E-6)
+            (13,1.2199848242744338E-7)
+            (14,1.2978688346265699E-8)
+            (15,1.3627783346237266E-9)
+            (16,1.4155432381812716E-10)
+            (17,1.4566126083082054E-11)
+            (18,1.4637180356658064E-12)
+            (19,1.8474111129762605E-13)
+            (20,1.4210854715202004E-14)
+            (21,0.0)
+            };
+            \legend{$\delta$: Delta}
+         
+        \end{axis}
+        \end{tikzpicture}
+        \end{center}
+	\section{Implementation Details}
+	The problem was modeled and implemented in Java \footnote{Is it worth to mention that State and Actions in the implementation are indexed starting from 0.}, using Jama \footnote{	https://math.nist.gov/javanumerics/jama/} for solving the linear equations system during policy iteration.
+	All methods used are declared in the class Hanoi and called in the Main class.
 
+	To execute the program run the following command
+	\begin{tcolorbox}[halign=center,width=8cm]
+	\Large \$ java -jar hanoi.jar
+	\end{tcolorbox}
+	Requirements: Java JDK 1.8
+\end{document}
