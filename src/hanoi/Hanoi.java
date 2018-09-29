@@ -67,6 +67,7 @@ public class Hanoi {
 		//Counter Delta and Start time of execution
 		int iteration = 0;
 		double delta;
+		List<Double> accuracy = new ArrayList<>();
 		long startTime = System.currentTimeMillis();
 
 		//Initiate Vectors
@@ -102,6 +103,8 @@ public class Hanoi {
 					delta = Math.abs(nextUtility[stateIdx] - previousUtility[stateIdx]);
 				}
 			}
+
+			accuracy.add(delta);
 
 			System.arraycopy(nextUtility, 0, previousUtility, 0, STATES_NUMBER);
 			iteration++;
