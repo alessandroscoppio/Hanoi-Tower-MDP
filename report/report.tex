@@ -1,0 +1,133 @@
+\documentclass[11pt]{article}
+\usepackage{floatrow}
+\usepackage{graphicx,wrapfig,lipsum}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{multirow}
+\usepackage{setspace}
+\usepackage{subcaption}
+\usepackage{eurosym}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage[thinspace,thinqspace,squaren,textstyle]{SIunits}
+\usepackage{float}
+\restylefloat{figure}
+\parindent 0pt
+\newcommand\Tstrut{\rule{0pt}{2.5ex}}
+
+\usepackage{wrapfig}
+\usepackage{eurosym}
+\usepackage{epstopdf}
+\usepackage{pdfpages}
+\usepackage[english]{babel}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[T1]{fontenc}
+\usepackage{courier}
+\usepackage{listings}
+\newcommand{\RM}[1]{\MakeUppercase{\romannumeral #1{.}}}
+\usepackage{epstopdf}
+
+\numberwithin{equation}{section}
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+
+\numberwithin{table}{section} 
+\renewcommand{\thetable}{\arabic{section}.\arabic{table}}
+
+\numberwithin{figure}{section} 
+\renewcommand{\thefigure}{\arabic{section}.\arabic{figure}}
+
+% FORMAT PAGE
+\special{papersize=210mm,297mm}   % set paper dimensions
+\setlength{\paperwidth}{210mm}    % paper width
+\setlength{\paperheight}{297mm}   % paper height
+\setlength{\topmargin}{10mm}      % top margin above header
+\setlength{\headsep}{10mm}        % space between header and text
+\setlength{\headheight}{10mm}     % header height
+\setlength{\footskip}{15mm}       % determines footer height
+\setlength{\textwidth}{160mm}     % text width
+\setlength{\textheight}{240mm}    % text height
+\setlength{\oddsidemargin}{25mm}  % 25mm margin
+\setlength{\evensidemargin}{25mm} % 25mm margin
+\setlength{\parindent}{0mm}       % indent of paragraph
+\setlength{\columnsep}{6mm}       % column separation
+\setlength{\hoffset}{-25.4mm}     % horizontal offset (-25.4mm = zero offset)
+\setlength{\voffset}{-25.4mm}     % vertical offset (-25.4mm = zero offset)
+
+\setlength{\parindent}{0pt} 
+
+%paragraph spacing
+\setlength{\parskip}{1em}
+% FONT
+\renewcommand{\familydefault}{cmr} % main font 
+\newcommand{\changefont}[3]{\fontfamily{#1}\fontseries{#2}\fontshape{#3}\selectfont}
+\renewcommand{\baselinestretch}{1.4}
+
+
+
+\begin{document}
+	
+	%---------------------------------------------------------------------------------%
+	% TITLE AND AUTHORS
+	%---------------------------------------------------------------------------------%
+	\newpage
+	\thispagestyle{empty}
+	
+	{\includegraphics[width=0.5\textwidth,keepaspectratio]{um.png}\\
+		
+		\begin{verbatim}
+		\end{verbatim}
+		
+		\begin{center}
+			
+			\huge{\textbf{Foundation of Agents}}
+			
+		\end{center}
+		
+		\begin{verbatim}
+		\end{verbatim}
+		
+		\begin{center}
+			\Large{\textbf{Assignment Report:\\ Tower of Hanoi}}
+			\begin{verbatim}
+			\end{verbatim}
+			\Large{Maastricht University}
+			\par
+			\Large{Faculty of Science and Engineering}
+			\par
+			\Large{Department of Data Science and Knowledge Engineering}
+			\begin{verbatim}
+			\end{verbatim}
+			\Large{\textbf{Authors}}\par
+			\Large{Alessandro Scoppio, i6200653\\
+				Giorgos Patsiaouras, i6198785}
+			\par    	
+		\end{center}
+		\newpage
+		\pagenumbering{arabic}
+    \setcounter{page}{1}
+		\section{Introduction}
+		\label{sec_Methodology}
+		The ''Tower of Hanoi'' problem to solve in this assignment is a mathematical puzzle consisting of three pins and two disks of different sizes, namely  $disk A$ and $disk B$ such that $disk A > disk B$.
+		The puzzle is considered solved when $disk A$ and $disk B$ have been transposed to the third pin, with smaller disk on top of the bigger one. Reaching this configuration will declare the end of the puzzle, as well as its solution. Having a finite number of states $S$ and actions $A$, this problem can be easily modeled as a Markov Decision Process (MDP).
+		
+
+		\subsection{States Description}
+		The number of possible states for a "usual" puzzle with n disks is 3n
+		since each disk can be on
+		2
+		one of the three pegs
+		\subsection{Actions  Description}
+
+		
+		\section{Optimal Policy}
+		
+		\section{Utility}
+		
+		\section{Evaluation of Convergence Speed}
+
+		
+	\end{document}
+
