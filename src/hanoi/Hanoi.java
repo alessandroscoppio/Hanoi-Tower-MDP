@@ -1,6 +1,7 @@
 package hanoi;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -10,6 +11,7 @@ public class Hanoi {
 
 	private static final int STATES_NUMBER = 12;
 	private static final int ACTIONS_NUMBER = 6;
+	private static final int ABSORBING_STATE = 5;
 	private static final double SMALLEST_DOUBLE_VALUE = -Double.MAX_VALUE;
 	private static final double DISCOUNT_FACTOR = 0.9;
 	private static final double EPSILON = 2.220446049250313e-16;
@@ -17,9 +19,49 @@ public class Hanoi {
 	private double[][][] transitionFunction;
 	private double[][][] rewardFunction;
 
+	private double[][] qValues;
+	private double[][] lambda;
+	private Random random;
+
 	public void prepare() {
+		random = new Random();
 		generateTransitionFunction();
 		generateRewardFunction();
+	}
+
+	public void qLearning() {
+		int iterations = 0;
+		qValues = new double[12][6];
+		lambda = getLambdaArray(0.9);
+
+		//Choose a random state to begin with
+		int stateIdx = 0;
+
+		while (iterations < 1000000) {
+			List<Integer> possibleActionsGivenState = getPossibleActions(stateIdx);
+			//Choose an action randomly
+			int actionIdx = possibleActionsGivenState.get(random.nextInt(possibleActionsGivenState.size()));
+			//Identify the new state
+			int landingStateIdx = getLandingStateIdxWithoutProbability(stateIdx, actionIdx);
+			//Observe the reward
+			double reward = getRewardFunction(stateIdx, actionIdx, landingStateIdx);
+			//Update Q(s,a)
+			qValues[stateIdx][actionIdx] = qValues[stateIdx][actionIdx] + lambda[stateIdx][actionIdx] * (reward + DISCOUNT_FACTOR * getMaxStatePrimeActionPrime(landingStateIdx) - qValues[stateIdx][actionIdx]);
+			//TODO update Lambda
+//			lambda[stateIdx][actionIdx] =
+			stateIdx = landingStateIdx;
+			if (stateIdx == ABSORBING_STATE) stateIdx = getRandomStateExcludingAbsorbingState();
+			//Count iterations
+			iterations++;
+		}
+
+		for (int stIdx = 0; stIdx < STATES_NUMBER; stIdx++) {
+			System.out.print("State " + stIdx + " \t: ");
+			for (int actIdx = 0; actIdx < ACTIONS_NUMBER; actIdx++) {
+				System.out.print(qValues[stIdx][actIdx]);
+			}
+			System.out.println();
+		}
 	}
 
 	public void policyIteration() {
@@ -175,6 +217,49 @@ public class Hanoi {
 		}
 		return landingStatesIdxs;
 
+	}
+
+	//TODO mix this one with the above method. Could be one.
+	private int getLandingStateIdxWithoutProbability(int stateIdx, int actionIdx) {
+		for (int landStateIdx = 0; landStateIdx < STATES_NUMBER; landStateIdx++) {
+			if (transitionFunction[stateIdx][actionIdx][landStateIdx] == 0.9) {
+				return landStateIdx;
+			}
+		}
+		return -1;
+	}
+
+	public int getRandomStateExcludingAbsorbingState(){
+		int stateIdx;
+		do {
+			stateIdx = random.nextInt(STATES_NUMBER);
+		} while (stateIdx == 5);
+		return stateIdx;
+	}
+
+	private double[][] getLambdaArray(double lambda) {
+		double[][] defaultLamda = new double[12][6];
+
+		for (int i = 0; i < STATES_NUMBER; i++) {
+			for (int j = 0; j < ACTIONS_NUMBER; j++) {
+				defaultLamda[i][j] = lambda;
+			}
+		}
+
+		return defaultLamda;
+	}
+
+	private double getMaxStatePrimeActionPrime(int landStateIdx) {
+		List<Integer> possibleActions = getPossibleActions(landStateIdx);
+
+		double max = -Double.MAX_VALUE;
+		for (int action : possibleActions) {
+			if (qValues[landStateIdx][action] > max) {
+				max = qValues[landStateIdx][action];
+			}
+		}
+
+		return max;
 	}
 
 	private double getTransitionFunction(int stateIdx, int actionIdx, int landStateIdx) {
