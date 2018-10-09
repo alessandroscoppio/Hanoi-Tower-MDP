@@ -30,38 +30,67 @@ public class Hanoi {
 	}
 
 	public void qLearning() {
-		int iterations = 0;
+		int iteration = 0;
 		qValues = new double[12][6];
+		int[][] qActionIterations = new int[12][6];
 		lambda = getLambdaArray(0.9);
+
+		double explorationRate = 1;
+		double maxExplorationRate = 1;
+		double minExplorationRate = 0.01;
+		double rate = 0.001;
 
 		//Choose a random state to begin with
 		int stateIdx = 0;
+		int actionIdx;
 
-		while (iterations < 1000000) {
+		while (iteration < 100000) {
 			List<Integer> possibleActionsGivenState = getPossibleActions(stateIdx);
-			//Choose an action randomly
-			int actionIdx = possibleActionsGivenState.get(random.nextInt(possibleActionsGivenState.size()));
+			//Take a random number between 0 and 1
+			double randomNumber = random.nextDouble();
+
+			if (randomNumber > explorationRate) //Do Exploitation
+				actionIdx = getActionThatMaximizesQValue(stateIdx, possibleActionsGivenState);
+			else //Do Exploration
+				actionIdx = possibleActionsGivenState.get(random.nextInt(possibleActionsGivenState.size()));
+
+			//Update Lambda
+			qActionIterations[stateIdx][actionIdx]++;
+			lambda[stateIdx][actionIdx] = Math.pow(qActionIterations[stateIdx][actionIdx], -0.9);
+
 			//Identify the new state
-			int landingStateIdx = getLandingStateIdxWithoutProbability(stateIdx, actionIdx);
+			int landingStateIdx = identifyState(stateIdx, actionIdx);
+
 			//Observe the reward
 			double reward = getRewardFunction(stateIdx, actionIdx, landingStateIdx);
+
 			//Update Q(s,a)
-			qValues[stateIdx][actionIdx] = qValues[stateIdx][actionIdx] + lambda[stateIdx][actionIdx] * (reward + DISCOUNT_FACTOR * getMaxStatePrimeActionPrime(landingStateIdx) - qValues[stateIdx][actionIdx]);
-			//TODO update Lambda
-//			lambda[stateIdx][actionIdx] =
+			qValues[stateIdx][actionIdx] = qValues[stateIdx][actionIdx] + lambda[stateIdx][actionIdx]
+					* (reward + (DISCOUNT_FACTOR * getMaxStatePrimeActionPrime(landingStateIdx)) - qValues[stateIdx][actionIdx]);
+
+			//Update current State
 			stateIdx = landingStateIdx;
 			if (stateIdx == ABSORBING_STATE) stateIdx = getRandomStateExcludingAbsorbingState();
-			//Count iterations
-			iterations++;
+
+			//Update explorationRate
+			explorationRate = minExplorationRate + (maxExplorationRate - minExplorationRate) * Math.exp(-rate*iteration);
+
+			//Count iteration
+			iteration++;
 		}
 
-		for (int stIdx = 0; stIdx < STATES_NUMBER; stIdx++) {
-			System.out.print("State " + stIdx + " \t: ");
-			for (int actIdx = 0; actIdx < ACTIONS_NUMBER; actIdx++) {
-				System.out.print(qValues[stIdx][actIdx]);
+		printQLearningResults();
+	}
+
+	private int getActionThatMaximizesQValue(int stateIdx, List<Integer> possibleActionsGivenState) {
+		int bestActionIdx = possibleActionsGivenState.get(0);
+		for (int actionIdx : possibleActionsGivenState) {
+			if (qValues[stateIdx][actionIdx] > qValues[stateIdx][bestActionIdx]) {
+				bestActionIdx = actionIdx;
 			}
-			System.out.println();
 		}
+
+		return bestActionIdx;
 	}
 
 	public void policyIteration() {
@@ -219,8 +248,7 @@ public class Hanoi {
 
 	}
 
-	//TODO mix this one with the above method. Could be one.
-	private int getLandingStateIdxWithoutProbability(int stateIdx, int actionIdx) {
+	private int identifyState(int stateIdx, int actionIdx) {
 		for (int landStateIdx = 0; landStateIdx < STATES_NUMBER; landStateIdx++) {
 			if (transitionFunction[stateIdx][actionIdx][landStateIdx] == 0.9) {
 				return landStateIdx;
@@ -229,7 +257,7 @@ public class Hanoi {
 		return -1;
 	}
 
-	public int getRandomStateExcludingAbsorbingState(){
+	public int getRandomStateExcludingAbsorbingState() {
 		int stateIdx;
 		do {
 			stateIdx = random.nextInt(STATES_NUMBER);
@@ -252,6 +280,10 @@ public class Hanoi {
 	private double getMaxStatePrimeActionPrime(int landStateIdx) {
 		List<Integer> possibleActions = getPossibleActions(landStateIdx);
 
+		//Absorbing state
+		if (possibleActions.size() == 0) {
+			return 0;
+		}
 		double max = -Double.MAX_VALUE;
 		for (int action : possibleActions) {
 			if (qValues[landStateIdx][action] > max) {
@@ -412,5 +444,21 @@ public class Hanoi {
 			System.out.printf("%d\t%d\t\t%d\t\t%f\n", iteration, (stateIdx + 1), policy[stateIdx], utility[stateIdx]);
 		}
 		System.out.println();
+	}
+
+	private void printQLearningResults() {
+		System.out.println("Q-Learning: \n");
+		System.out.println("State\tPolicy\tReward");
+		for (int stIdx = 0; stIdx < STATES_NUMBER; stIdx++) {
+			double max = qValues[stIdx][0];
+			int maxActionIndex = 0;
+			for (int actIdx = 0; actIdx < ACTIONS_NUMBER; actIdx++) {
+				if (qValues[stIdx][actIdx] > max) {
+					max = qValues[stIdx][actIdx];
+					maxActionIndex = actIdx;
+				}
+			}
+			System.out.printf("%d\t\t%d\t\t%f\n", (stIdx + 1), maxActionIndex, qValues[stIdx][maxActionIndex]);
+		}
 	}
 }
