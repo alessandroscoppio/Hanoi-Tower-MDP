@@ -1,7 +1,6 @@
 package hanoi;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -14,6 +13,7 @@ public class Hanoi {
 	private static final int ABSORBING_STATE = 5;
 	private static final double SMALLEST_DOUBLE_VALUE = -Double.MAX_VALUE;
 	private static final double DISCOUNT_FACTOR = 0.9;
+	private static final double LAMBDA_VALUE = 0.9;
 	private static final double EPSILON = 2.220446049250313e-16;
 
 	private double[][][] transitionFunction;
@@ -33,7 +33,7 @@ public class Hanoi {
 		int iteration = 0;
 		qValues = new double[12][6];
 		int[][] qActionIterations = new int[12][6];
-		lambda = getLambdaArray(0.9);
+		lambda = getLambdaArray();
 
 		double explorationRate = 1;
 		double maxExplorationRate = 1;
@@ -56,7 +56,7 @@ public class Hanoi {
 
 			//Update Lambda
 			qActionIterations[stateIdx][actionIdx]++;
-			lambda[stateIdx][actionIdx] = Math.pow(qActionIterations[stateIdx][actionIdx], -0.9);
+			lambda[stateIdx][actionIdx] = Math.pow(qActionIterations[stateIdx][actionIdx], -LAMBDA_VALUE);
 
 			//Identify the new state
 			int landingStateIdx = identifyState(stateIdx, actionIdx);
@@ -265,12 +265,12 @@ public class Hanoi {
 		return stateIdx;
 	}
 
-	private double[][] getLambdaArray(double lambda) {
+	private double[][] getLambdaArray() {
 		double[][] defaultLamda = new double[12][6];
 
 		for (int i = 0; i < STATES_NUMBER; i++) {
 			for (int j = 0; j < ACTIONS_NUMBER; j++) {
-				defaultLamda[i][j] = lambda;
+				defaultLamda[i][j] = LAMBDA_VALUE;
 			}
 		}
 
@@ -448,7 +448,7 @@ public class Hanoi {
 
 	private void printQLearningResults() {
 		System.out.println("Q-Learning: \n");
-		System.out.println("State\tPolicy\tReward");
+		System.out.println("State\tPolicy\tQuality");
 		for (int stIdx = 0; stIdx < STATES_NUMBER; stIdx++) {
 			double max = qValues[stIdx][0];
 			int maxActionIndex = 0;
