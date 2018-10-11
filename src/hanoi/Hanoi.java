@@ -31,6 +31,7 @@ public class Hanoi {
 	}
 
 	public void qLearning() {
+		Plotter plotter = new Plotter();
 		int iteration = 0;
 		qValues = new double[12][6];
 		int[][] qActionIterations = new int[12][6];
@@ -69,6 +70,8 @@ public class Hanoi {
 			qValues[stateIdx][actionIdx] = qValues[stateIdx][actionIdx] + lambda[stateIdx][actionIdx]
 					* (reward + (DISCOUNT_FACTOR * getMaxStatePrimeActionPrime(landingStateIdx)) - qValues[stateIdx][actionIdx]);
 
+			plotter.logQValue(stateIdx, actionIdx, iteration, qValues);
+
 			//Update current State
 			stateIdx = landingStateIdx;
 			if (stateIdx == ABSORBING_STATE) stateIdx = getRandomStateExcludingAbsorbingState();
@@ -79,7 +82,7 @@ public class Hanoi {
 			//Count iteration
 			iteration++;
 		}
-
+		plotter.plot();
 		printQLearningResults();
 	}
 
