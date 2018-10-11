@@ -51,7 +51,8 @@ public class Hanoi {
             //Take a random number between 0 and 1
             double randomNumber = random.nextDouble();
 
-            if (USE_EXPLOITATION) {
+            if (USE_EXPLOITATION) //Decide whether to use exploitation or exploration basing on explorationRate
+            {
 
                 if (randomNumber > explorationRate) //Do Exploitation
                 {
