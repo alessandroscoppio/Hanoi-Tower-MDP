@@ -250,12 +250,17 @@ public class Hanoi {
 	}
 
 	private int identifyState(int stateIdx, int actionIdx) {
+		int properState = -1;
+		int failState = -1;
 		for (int landStateIdx = 0; landStateIdx < STATES_NUMBER; landStateIdx++) {
 			if (transitionFunction[stateIdx][actionIdx][landStateIdx] == 0.9) {
-				return landStateIdx;
+				properState = landStateIdx;
+			} else if (transitionFunction[stateIdx][actionIdx][landStateIdx] == 0.1) {
+				failState = landStateIdx;
 			}
 		}
-		return -1;
+		if (random.nextDouble() < 0.9) return properState;
+		else return failState;
 	}
 
 	public int getRandomStateExcludingAbsorbingState() {
