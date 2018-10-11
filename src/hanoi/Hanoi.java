@@ -15,6 +15,7 @@ public class Hanoi {
 	private static final double DISCOUNT_FACTOR = 0.9;
 	private static final double LAMBDA_VALUE = 0.9;
 	private static final double EPSILON = 2.220446049250313e-16;
+	private static final int MAX_ITERATIONS_Q_LEARNING = 5000;
 
 	private double[][][] transitionFunction;
 	private double[][][] rewardFunction;
@@ -44,7 +45,7 @@ public class Hanoi {
 		int stateIdx = 0;
 		int actionIdx;
 
-		while (iteration < 100000) {
+		while (iteration < MAX_ITERATIONS_Q_LEARNING) {
 			List<Integer> possibleActionsGivenState = getPossibleActions(stateIdx);
 			//Take a random number between 0 and 1
 			double randomNumber = random.nextDouble();
