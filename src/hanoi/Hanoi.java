@@ -16,7 +16,7 @@ public class Hanoi {
     private static final double LAMBDA_VALUE = 0.9;
     private static final double EPSILON = 2.220446049250313e-16;
     private static final int MAX_ITERATIONS_Q_LEARNING = 5000;
-    private static final boolean USE_EXPLOITATION = true;
+    private static final boolean USE_EXPLOITATION = false;
 
     private double[][][] transitionFunction;
     private double[][][] rewardFunction;
